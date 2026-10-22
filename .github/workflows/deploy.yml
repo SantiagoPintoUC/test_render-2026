@@ -24,7 +24,7 @@ jobs:
               run: npm ci
 
             - name: tests
-              run: npm test:api
+              run: npm run test:api
     deploy:
         needs: test
         if: github.event_name == 'push'
