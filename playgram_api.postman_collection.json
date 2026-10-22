@@ -1,0 +1,382 @@
+{
+  "info": {
+    "_postman_id": "c71a39f0-21a4-4a51-91a7-19a9d2026 playgram",
+    "name": "Playgram Backend API",
+    "description": "Colección oficial de pruebas de Postman para la API REST de Playgram (IIC2513).\nIncluye pruebas de autenticación (registro, login, perfil) y publicaciones (feed de main page, crear post).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        },
+        "description": "Comprueba que la API esté activa y responde."
+      },
+      "response": []
+    },
+    {
+      "name": "1. Auth - Registro de Usuario",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 201) {",
+              "    const jsonData = pm.response.json();",
+              "    if (jsonData.token) {",
+              "        pm.collectionVariables.set('jwt_token', jsonData.token);",
+              "        console.log('Token JWT guardado automáticamente en jwt_token');",
+              "    }",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"oyente_demo\",\n  \"email\": \"oyente@playgram.cl\",\n  \"password\": \"Password123!\",\n  \"bio\": \"Amante del indie rock y probador oficial de Playgram.\",\n  \"avatar_url\": \"https://images.unsplash.com/photo-1535713875002-d1d0cf377fde\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/register",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "register"]
+        },
+        "description": "Registra un usuario nuevo. El test script guarda automáticamente el token en la variable jwt_token."
+      },
+      "response": []
+    },
+    {
+      "name": "2. Auth - Login de Usuario",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    const jsonData = pm.response.json();",
+              "    if (jsonData.token) {",
+              "        pm.collectionVariables.set('jwt_token', jsonData.token);",
+              "        console.log('Token JWT actualizado en jwt_token');",
+              "    }",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"diego@playgram.cl\",\n  \"password\": \"Password123!\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "login"]
+        },
+        "description": "Inicia sesión con credenciales existentes (email o username) y actualiza el token JWT."
+      },
+      "response": []
+    },
+    {
+      "name": "3. Auth - Perfil del Usuario Actual (/me)",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{jwt_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/auth/me",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "me"]
+        },
+        "description": "Ruta protegida que retorna los datos del usuario autenticado a partir del token Bearer."
+      },
+      "response": []
+    },
+    {
+      "name": "4. Publicaciones - Obtener Feed de Main Page",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/publicaciones?limit=20&offset=0",
+          "host": ["{{base_url}}"],
+          "path": ["publicaciones"],
+          "query": [
+            {
+              "key": "limit",
+              "value": "20"
+            },
+            {
+              "key": "offset",
+              "value": "0"
+            }
+          ]
+        },
+        "description": "Endpoint público esencial para poblar el front-end con las publicaciones y datos de autor."
+      },
+      "response": []
+    },
+    {
+      "name": "5. Publicaciones - Crear Nueva Publicación (Requiere Token)",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{jwt_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"texto\": \"¡Probando la API de Playgram desde Postman! El feed se actualiza en tiempo real 🎧🔥\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/publicaciones",
+          "host": ["{{base_url}}"],
+          "path": ["publicaciones"]
+        },
+        "description": "Crea un nuevo post asociado automáticamente al usuario del token JWT provisto."
+      },
+      "response": []
+    },
+    {
+      "name": "6. Publicaciones - Detalle por ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/publicaciones/1",
+          "host": ["{{base_url}}"],
+          "path": ["publicaciones", "1"]
+        },
+        "description": "Obtiene una publicación específica con la información de su autor."
+      },
+      "response": []
+    },
+    {
+      "name": "7. Error Test - Crear Publicación Sin Token (Debe dar 401)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"texto\": \"Este post no debería crearse porque no incluyo token.\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/publicaciones",
+          "host": ["{{base_url}}"],
+          "path": ["publicaciones"]
+        },
+        "description": "Prueba de seguridad: verifica que el servidor responda con 401 Unauthorized si no hay token."
+      },
+      "response": []
+    },
+    {
+      "name": "8. Likes - Toggle Like en Track",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{jwt_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/tracks/1/like",
+          "host": ["{{base_url}}"],
+          "path": ["tracks", "1", "like"]
+        },
+        "description": "Alterna (toggle) el like del usuario autenticado en un Track (relación da like en diagrama XML)."
+      },
+      "response": []
+    },
+    {
+      "name": "9. Likes - Ver Likes de un Track",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/tracks/1/likes",
+          "host": ["{{base_url}}"],
+          "path": ["tracks", "1", "likes"]
+        },
+        "description": "Consulta el total de likes y lista de usuarios que dieron like a un Track."
+      },
+      "response": []
+    },
+    {
+      "name": "10. Likes - Toggle Like en Reseña",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{jwt_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/resenas/1/like",
+          "host": ["{{base_url}}"],
+          "path": ["resenas", "1", "like"]
+        },
+        "description": "Alterna (toggle) el like del usuario autenticado en una Reseña (relación da like en diagrama XML)."
+      },
+      "response": []
+    },
+    {
+      "name": "11. Likes - Ver Likes de una Reseña",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/resenas/1/likes",
+          "host": ["{{base_url}}"],
+          "path": ["resenas", "1", "likes"]
+        },
+        "description": "Consulta el total de likes y lista de usuarios que dieron like a una Reseña."
+      },
+      "response": []
+    },
+    {
+      "name": "12. Likes - Toggle Like en Comentario",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{jwt_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/comentarios/1/like",
+          "host": ["{{base_url}}"],
+          "path": ["comentarios", "1", "like"]
+        },
+        "description": "Alterna (toggle) el like del usuario autenticado en un Comentario (relación da like en diagrama XML)."
+      },
+      "response": []
+    },
+    {
+      "name": "13. Likes - Toggle Like en Publicación",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{jwt_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/publicaciones/1/like",
+          "host": ["{{base_url}}"],
+          "path": ["publicaciones", "1", "like"]
+        },
+        "description": "Alterna (toggle) el like del usuario autenticado en una Publicación del feed."
+      },
+      "response": []
+    },
+    {
+      "name": "14. Likes - Mis Likes (/auth/me/likes)",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{jwt_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/auth/me/likes",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "me", "likes"]
+        },
+        "description": "Obtiene todos los tracks, reseñas, comentarios y publicaciones a los que el usuario autenticado ha dado like."
+      },
+      "response": []
+    }
+  ]
+}
