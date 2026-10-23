@@ -1,0 +1,35 @@
+name: Deploy a Render
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+        
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Instalar Node
+              uses: actions/setup-node@v4
+              with:
+                node-version: 22
+                cache: npm
+                cache-dependency-path: package-lock.json
+            
+            - name: Instalar dependencias
+              run: npm ci
+
+    deploy:
+        needs: test
+        if: github.event_name == 'push'
+        runs-on: ubuntu-latest
+        steps:
+            - name: Gatillar deploy a Render
+              timeout-minutes: 3
+              run: curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL"
+              env:
+                RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
